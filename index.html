@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>The Jávea Snorkel Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1:#0B1B3A;
+    --bg2:#152B57;
+    --panel:#FBFBFE;
+    --panel-alt:#E9F5FA;
+    --ink:#16263D;
+    --ink-soft:#54627A;
+    --text-light:#EAF2FF;
+    --text-light-soft:#B9C9E8;
+    --accent:#2EC4B6;
+    --accent-dark:#1B9C90;
+    --gold:#FFC93C;
+    --coral:#FF6B6B;
+    --r-common:#9AA5B1;
+    --r-uncommon:#3FA34D;
+    --r-rare:#3E7CFF;
+    --r-ultra:#E8B94B;
+    --shadow: 0 8px 20px rgba(5,12,28,0.4);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:
+      radial-gradient(circle at 15% 10%, rgba(46,196,182,0.25), transparent 45%),
+      radial-gradient(circle at 85% 85%, rgba(255,201,60,0.15), transparent 45%),
+      linear-gradient(160deg, var(--bg1), var(--bg2));
+    font-family:'Nunito', sans-serif;
+    color: var(--ink);
+    min-height:100%;
+  }
+  h1,h2,h3,h4,.game-font,.tab,button,.btn,.tcard-name{
+    font-family:'Baloo 2', sans-serif;
+  }
+
+  #app{
+    max-width:1080px;margin:0 auto;
+    padding: clamp(6px,1.6vw,18px) clamp(8px,2vw,14px) clamp(8px,1.6vh,20px);
+    height:100vh; height:100dvh;
+    display:flex; flex-direction:column;
+    overflow:hidden;
+  }
+  body.atlas-mode #app{ height:auto; overflow:visible; }
+
+  header.top{
+    text-align:center;
+    padding: clamp(4px,1vh,14px) 6px clamp(2px,0.8vh,8px);
+    color:var(--text-light);
+    flex-shrink:0;
+  }
+  header.top .eyebrow{
+    letter-spacing:3px;
+    font-size: clamp(8px,1vh,11px);
+    color:var(--gold);
+    text-transform:uppercase;
+    font-weight:800;
+  }
+  header.top h1{
+    font-size:clamp(18px,3.6vh,38px);
+    margin:4px 0 2px;
+    letter-spacing:.5px;
+    line-height:1.15;
+    font-weight:800;
+    color:#fff;
+    text-shadow: 2px 2px 0 var(--accent-dark), 0 4px 14px rgba(0,0,0,.35);
+  }
+  header.top .subtitle{
+    font-family:'Nunito',sans-serif;
+    font-weight:700;
+    font-style:italic;
+    font-size:clamp(11px,1.7vh,17px);
+    color:var(--text-light-soft);
+  }
+  @media (max-height:650px){ header.top .subtitle{display:none;} }
+
+  nav.tabs{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    margin: clamp(4px,1vh,14px) 0;
+    flex-wrap:wrap;
+    flex-shrink:0;
+  }
+  .tab{
+    background:rgba(255,255,255,0.08);
+    color:var(--text-light);
+    border:2px solid rgba(255,255,255,0.18);
+    padding: clamp(7px,1vh,11px) clamp(16px,2.8vw,22px);
+    border-radius:999px;
+    cursor:pointer;
+    font-size: clamp(11px,1.3vh,13px);
+    letter-spacing:.5px;
+    font-weight:700;
+    transition:all .15s ease;
+  }
+  .tab:hover{background:rgba(255,255,255,0.16);}
+  .tab.active{
+    background:linear-gradient(135deg, var(--accent), var(--accent-dark));
+    color:#fff;
+    border-color:transparent;
+    box-shadow:0 3px 0 rgba(0,0,0,.2);
+  }
+
+  .page{
+    background:rgba(20,43,87,0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border:1px solid rgba(255,255,255,0.14);
+    border-radius:20px;
+    box-shadow: var(--shadow);
+    padding: clamp(10px,1.8vh,22px) clamp(10px,2.4vw,20px) clamp(12px,2vh,26px);
+    position:relative;
+    flex:1;
+    min-height:0;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+  body.atlas-mode .page{ overflow:visible; display:block; flex:none; }
+
+  section{display:none;}
+  section.active{display:flex; flex-direction:column; min-height:0; flex:1;}
+  body.atlas-mode section.active{display:block;}
+
+  /* ---------- HOME ---------- */
+  .log-title{
+    font-size: clamp(10px,1.3vh,15px); letter-spacing:2px; text-transform:uppercase;
+    color:var(--gold); margin-bottom:2px; flex-shrink:0; font-weight:800;
+  }
+  .log-date{font-weight:700; font-style:italic; font-size:clamp(12px,1.9vh,20px); color:var(--text-light-soft); margin-bottom: clamp(6px,1.4vh,18px); flex-shrink:0;}
+
+  .stat-grid{
+    display:grid; grid-template-columns:repeat(4,1fr);
+    gap: clamp(5px,1vw,12px); margin-bottom: clamp(6px,1.4vh,20px); flex-shrink:0;
+  }
+  .stat-card{
+    background:var(--panel);
+    border:2px solid rgba(255,255,255,0.5);
+    border-radius:12px;
+    padding: clamp(5px,1vh,12px) clamp(4px,1vw,14px);
+    text-align:center;
+    min-width:0;
+    box-shadow:0 3px 0 rgba(5,12,28,.25);
+  }
+  .stat-card .icon{font-size:clamp(11px,1.6vh,16px);}
+  .stat-card .num{font-size: clamp(14px,2.4vh,26px); color:var(--ink); font-family:'Baloo 2',sans-serif; font-weight:800; white-space:nowrap;}
+  .stat-card .lbl{font-size: clamp(7px,0.9vh,10px); letter-spacing:.3px; text-transform:uppercase; color:var(--ink-soft); font-weight:700;}
+
+  .panel-row{display:flex; gap: clamp(8px,1.6vw,20px); flex:1; min-height:0;}
+  .panel{
+    flex:1 1 50%;
+    min-width:0; min-height:0;
+    background:var(--panel);
+    border:2px solid rgba(255,255,255,0.5);
+    border-radius:14px;
+    padding: clamp(6px,1.3vh,16px) clamp(8px,1.4vw,16px);
+    display:flex; flex-direction:column;
+    overflow:hidden;
+    box-shadow:0 3px 0 rgba(5,12,28,.25);
+  }
+  .panel h3{margin:0 0 clamp(3px,0.8vh,8px); font-size: clamp(9px,1.2vh,13px); letter-spacing:.5px; text-transform:uppercase; color:var(--accent-dark); flex-shrink:0; font-weight:800;}
+
+  /* gauge */
+  .dial-wrap{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; flex:1; min-height:0;}
+  .dial{width:min(100%, 30vh); max-height:52%; flex-shrink:1;}
+  .dial-rating{font-size: clamp(12px,1.9vh,20px); flex-shrink:0; font-weight:800;}
+  .dial-desc{font-size: clamp(7px,1vh,12px); color:var(--ink-soft); text-align:center; max-width:280px; flex-shrink:0; font-weight:600; line-height:1.25;}
+  .conditions-row{
+    display:flex; gap:6px; margin-top:4px; font-size: clamp(8px,1vh,12px); color:var(--ink-soft); flex-wrap:wrap; justify-content:center; flex-shrink:0; font-weight:700;
+  }
+  .conditions-row span{background:var(--panel-alt); border:1px solid #D5E7EE; padding:2px 7px; border-radius:12px; white-space:nowrap;}
+
+  /* featured card panel */
+  .featured-card{display:flex; align-items:center; justify-content:center; flex:1; min-height:0;}
+  .featured-hint{font-size:clamp(7px,0.9vh,10px); color:var(--ink-soft); text-align:center; flex-shrink:0; font-weight:700;}
+
+  .btn{
+    display:inline-block; background:var(--accent); color:#fff; border:none;
+    padding: clamp(6px,1vh,9px) clamp(12px,1.8vw,18px); border-radius:999px; cursor:pointer; font-size: clamp(9px,1.05vh,12px);
+    letter-spacing:.5px; font-weight:700;
+    box-shadow:0 3px 0 var(--accent-dark);
+  }
+  .btn:active{transform:translateY(2px); box-shadow:none;}
+  .btn.secondary{background:var(--gold); color:#5B4300; box-shadow:0 3px 0 #C79A1E;}
+  .btn.danger{background:var(--coral); box-shadow:0 3px 0 #C94A4A;}
+  .btn.ghost{background:transparent; color:var(--ink); border:2px solid var(--accent); box-shadow:none; padding-top:calc(clamp(6px,1vh,9px) - 2px); padding-bottom:calc(clamp(6px,1vh,9px) - 2px);}
+
+  .data-bar{display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; padding-top: clamp(4px,1vh,10px); flex-shrink:0;}
+  .data-bar .lbl{font-size: clamp(8px,1vh,11px); color:var(--text-light-soft); font-weight:700;}
+
+  /* ---------- ATLAS CONTROLS ---------- */
+  .atlas-controls{
+    display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:18px;
+  }
+  .atlas-controls input[type=text]{
+    flex:1 1 200px; padding:9px 14px; border:2px solid rgba(255,255,255,0.3); border-radius:999px;
+    font-family:'Nunito',sans-serif; font-weight:700; font-size:14px; background:var(--panel); color:var(--ink);
+  }
+  .atlas-controls select, .filter-chip{
+    padding:9px 14px; border:2px solid rgba(255,255,255,0.3); border-radius:999px; background:var(--panel); color:var(--ink);
+    font-family:'Nunito',sans-serif; font-weight:700; font-size:13px; cursor:pointer;
+  }
+  .filter-chip.active{background:var(--accent); color:#fff; border-color:transparent;}
+
+  /* ---------- TRADING CARDS ---------- */
+  .grid{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:16px;
+  }
+  .tcard{
+    --rcolor:#9AA5B1;
+    border-radius:16px; padding:6px; background:var(--rcolor);
+    box-shadow: var(--shadow); position:relative; cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease;
+    aspect-ratio:5/7; max-width:230px; margin:0 auto; width:100%;
+  }
+  .tcard:hover{ transform:translateY(-4px) scale(1.02); box-shadow:0 12px 26px rgba(5,12,28,.5); }
+  .tcard.mini{ height:100%; width:auto; max-width:none; margin:0; }
+  .tcard-inner{
+    background:var(--panel); border-radius:11px; height:100%; padding:8px;
+    display:flex; flex-direction:column; gap:4px; position:relative; overflow:hidden;
+  }
+  .tcard-head{display:flex; justify-content:space-between; align-items:flex-start; gap:4px;}
+  .tcard-name{font-weight:700; font-size:clamp(10px,2.6cqw,14px); color:var(--ink); line-height:1.1;}
+  .tcard-gems{display:flex; gap:2px; padding-top:2px; flex-shrink:0;}
+  .gem{width:7px;height:7px;border-radius:50%;background:#D8DEE6; display:inline-block;}
+  .gem.on{background:var(--gold); box-shadow:0 0 3px var(--gold);}
+  .tcard-type{
+    align-self:flex-start; color:#fff; font-size:clamp(7px,1.8cqw,9px); font-weight:800;
+    padding:2px 9px; border-radius:8px; text-transform:uppercase; letter-spacing:.5px;
+  }
+  .tcard-art{
+    flex:1; min-height:0; background:var(--panel-alt); border-radius:8px; border:2px solid var(--rcolor);
+    display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative;
+  }
+  .tcard-art img{width:100%; height:100%; object-fit:cover; display:block;}
+  .art-placeholder{font-size:clamp(20px,7cqw,38px);}
+  .caught-seal{
+    position:absolute; top:4px; right:4px; width:22px; height:22px; border-radius:50%;
+    background:linear-gradient(135deg,var(--gold),#fff3c4); color:#5B4300; display:flex;
+    align-items:center; justify-content:center; font-size:13px; font-weight:800;
+    box-shadow:0 2px 5px rgba(0,0,0,.35); border:2px solid #fff; transform:rotate(10deg);
+  }
+  .tcard-subname{font-style:italic; font-weight:700; font-size:clamp(9px,2.2cqw,12px); color:var(--ink-soft); text-align:center;}
+  .tcard-stats{font-size:clamp(8px,2cqw,10px); color:var(--ink-soft); font-weight:700; display:flex; flex-direction:column; gap:1px;}
+  .tcard-stats div{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .tcard-flavor{
+    font-size:clamp(8px,2cqw,10px); color:var(--ink); line-height:1.25; flex:1; min-height:0; overflow:hidden;
+    display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical;
+  }
+  .tcard-footer{
+    display:flex; justify-content:space-between; align-items:center; font-size:clamp(7px,1.8cqw,9px);
+    font-weight:800; color:var(--ink-soft); border-top:1px dashed #D8DEE6; padding-top:3px; flex-shrink:0;
+  }
+  .tcard-rarity{letter-spacing:.3px;}
+
+  .tcard.holo::after{
+    content:"";
+    position:absolute; inset:0; border-radius:16px;
+    background:linear-gradient(115deg, transparent 20%, rgba(255,255,255,.9) 35%, rgba(255,80,180,.5) 45%, rgba(80,200,255,.5) 55%, rgba(255,230,0,.5) 65%, transparent 80%);
+    background-size:280% 280%;
+    mix-blend-mode:color-dodge;
+    opacity:.55;
+    pointer-events:none;
+    animation: holoShift 6s linear infinite;
+  }
+  @keyframes holoShift{
+    0%{background-position:0% 0%;}
+    100%{background-position:200% 200%;}
+  }
+
+  .empty-note{font-size:14px; color:var(--text-light-soft); font-style:italic; padding:10px 0; text-align:center;}
+
+  /* ---------- MODAL ---------- */
+  #modal-overlay{
+    display:none; position:fixed; inset:0; background:rgba(5,12,28,0.75);
+    z-index:50; align-items:flex-start; justify-content:center; padding:26px 12px; overflow-y:auto;
+  }
+  #modal-overlay.open{display:flex;}
+  .modal{
+    background:var(--panel); border-radius:20px; max-width:460px; width:100%;
+    box-shadow:0 16px 44px rgba(0,0,0,.5); padding:22px 22px 26px; position:relative;
+  }
+  .modal-close{
+    position:absolute; top:12px; right:14px; background:rgba(0,0,0,0.06); border:none; font-size:16px;
+    width:28px; height:28px; border-radius:50%; cursor:pointer; color:var(--ink-soft);
+  }
+  .modal-card-wrap{ width:200px; max-width:60%; margin:0 auto 14px; }
+  .modal p.desc{font-size:14px; line-height:1.5; margin:10px 0; color:var(--ink); font-weight:600;}
+  .modal hr{border:none; border-top:2px dashed #D8DEE6; margin:16px 0;}
+  .modal h3.section-h{margin:0 0 10px; font-size:13px; letter-spacing:1px; text-transform:uppercase; color:var(--accent-dark); font-weight:800;}
+
+  .log-form{display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end; margin-bottom:14px;}
+  .log-form .field{display:flex; flex-direction:column; font-size:10px; text-transform:uppercase; letter-spacing:.5px; color:var(--ink-soft); font-weight:800;}
+  .log-form input, .log-form select{
+    padding:8px 10px; border:2px solid #D8DEE6; border-radius:10px; font-family:'Nunito',sans-serif; font-weight:700; font-size:14px;
+  }
+  .sighting-list{list-style:none; margin:0; padding:0; font-size:13px;}
+  .sighting-list li{
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;
+    background:var(--panel-alt); border:1px solid #D5E7EE; border-radius:10px;
+    padding:7px 10px; margin-bottom:6px; font-weight:600;
+  }
+  .sighting-list .who{font-weight:800; color:var(--ink);}
+  .sighting-list .actions button{
+    background:none; border:none; cursor:pointer; font-size:14px; margin-left:6px; color:var(--ink-soft);
+  }
+  .sighting-list .actions button:hover{color:var(--coral);}
+  .edit-row{display:flex; gap:6px; flex-wrap:wrap; align-items:center;}
+  .edit-row input, .edit-row select{padding:6px 8px; border:2px solid #D8DEE6; border-radius:8px; font-size:13px;}
+
+  footer.appfoot{
+    text-align:center; color:var(--text-light-soft); font-size:11px; opacity:.7; flex-shrink:0;
+    padding-top:2px; font-weight:700;
+  }
+  body.atlas-mode footer.appfoot{margin-top:16px; padding-top:0;}
+
+  #toast{
+    position:fixed; bottom:18px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--ink); color:#fff; padding:11px 20px; border-radius:999px; font-size:14px; font-weight:700;
+    opacity:0; pointer-events:none; transition:all .25s ease; z-index:99; box-shadow:var(--shadow);
+  }
+  #toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  @media (max-width:600px){
+    .panel-row{gap:6px;}
+    .panel{padding:6px 8px;}
+  }
+  @media (max-width:480px){
+    .log-form{flex-direction:column; align-items:stretch;}
+  }
+  @media (min-width:1024px){
+    header.top h1{font-size:40px;}
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <header class="top">
+    <div class="eyebrow">Collector's Edition</div>
+    <h1>🎴 The Jávea Snorkel Log 🎴</h1>
+    <div class="subtitle">Catch 'em all — kept by Daddy, Mummy, Julia &amp; Jamie</div>
+  </header>
+
+  <nav class="tabs">
+    <div class="tab active" data-view="home">🗺️ Ship's Log</div>
+    <div class="tab" data-view="atlas">📖 Card Collection</div>
+  </nav>
+
+  <div class="page">
+
+    <section id="view-home" class="active">
+      <div class="log-title">Today's Entry</div>
+      <div class="log-date" id="today-date"></div>
+
+      <div class="stat-grid">
+        <div class="stat-card"><div class="icon">🐠</div><div class="num" id="stat-seen">0</div><div class="lbl">Species Spotted</div></div>
+        <div class="stat-card"><div class="icon">📒</div><div class="num" id="stat-total">0</div><div class="lbl">Total Sightings</div></div>
+        <div class="stat-card"><div class="icon">🏆</div><div class="num" id="stat-spotter">–</div><div class="lbl">Top Spotter</div></div>
+        <div class="stat-card"><div class="icon">📅</div><div class="num" id="stat-days">–</div><div class="lbl">Days Since Outing</div></div>
+      </div>
+
+      <div class="panel-row">
+        <div class="panel">
+          <h3>🌊 Today's Snorkel-o-Meter</h3>
+          <div class="dial-wrap">
+            <svg class="dial" id="dial-svg" viewBox="0 0 200 118"></svg>
+            <div class="dial-rating game-font" id="dial-rating">Loading conditions…</div>
+            <div class="dial-desc" id="dial-desc"></div>
+            <div class="conditions-row" id="conditions-row"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>👀 Card of the Day</h3>
+          <div class="featured-card" id="featured-card"></div>
+          <div class="featured-hint">Tap the card for full details</div>
+        </div>
+      </div>
+
+      <div class="data-bar">
+        <span class="lbl">Your log is saved in this browser.</span>
+        <button class="btn secondary" id="btn-export">Export</button>
+        <button class="btn ghost" id="btn-import">Import</button>
+        <input type="file" id="file-import" accept="application/json" style="display:none;">
+      </div>
+    </section>
+
+    <section id="view-atlas">
+      <div class="log-title">Card Collection</div>
+      <div class="log-date" id="atlas-subtitle">50 cards to collect off the Jávea coast</div>
+
+      <div class="atlas-controls">
+        <input type="text" id="search-box" placeholder="Search by name…">
+        <select id="filter-difficulty">
+          <option value="all">All rarities</option>
+          <option value="Easy">Easy (Common)</option>
+          <option value="Medium">Medium (Uncommon)</option>
+          <option value="Hard">Hard (Rare)</option>
+          <option value="Rare">Rare (Ultra Rare)</option>
+        </select>
+        <select id="filter-person">
+          <option value="all">All Collectors</option>
+          <option value="Daddy">Daddy's Collection</option>
+          <option value="Mummy">Mummy's Collection</option>
+          <option value="Julia">Julia's Collection</option>
+          <option value="Jamie">Jamie's Collection</option>
+        </select>
+        <select id="filter-caught">
+          <option value="all">All cards</option>
+          <option value="caught">Caught only</option>
+          <option value="uncaught">Not yet caught</option>
+        </select>
+      </div>
+
+      <div class="grid" id="atlas-grid"></div>
+      <p class="empty-note" id="atlas-empty" style="display:none;">No cards match — try clearing a filter.</p>
+    </section>
+
+  </div>
+
+  <footer class="appfoot">Fair winds and clear water. &mdash; Logged with care in Xàbia.</footer>
+</div>
+
+<div id="modal-overlay">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ======================= DATA ======================= */
+const SPOTTERS = ["Daddy","Mummy","Julia","Jamie"];
+
+const SPECIES = [
+{id:"salema", en:"Salema Porgy", es:"Salema", wiki:"Sarpa salpa", cat:"fish", icon:"🐟",
+ difficulty:"Easy", months:[4,5,6,7,8,9,10,11],
+ size:"20–30 cm (up to 45 cm)", diet:"Herbivore — grazes algae and seagrass",
+ short:"Silvery fish with gold stripes, always cruising in big schools near rocks.",
+ more:"Salema travel in loose schools along rocky edges and posidonia meadows, calmly grazing on algae. They're one of the easiest fish to find on almost any snorkel. Fun fact: eating salema has occasionally been linked to strange dream-like effects in some people — locals call it the 'dreamfish', though you certainly don't need to eat one to enjoy spotting it!"},
+
+{id:"white-seabream", en:"White Seabream", es:"Sargo", wiki:"Diplodus sargus", cat:"fish", icon:"🐟",
+ difficulty:"Easy", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"20–35 cm", diet:"Omnivore — molluscs, crustaceans, algae",
+ short:"Silver body with bold dark vertical bars and a black-and-white tail.",
+ more:"One of the classic Mediterranean rock fish, the white seabream has striking dark bars across a silver body and a black band near the tail. Found year-round hugging rocky shorelines, often in small groups."},
+
+{id:"twobanded-seabream", en:"Two-banded Seabream", es:"Sargo picudo / Mojarra", wiki:"Diplodus vulgaris", cat:"fish", icon:"🐟",
+ difficulty:"Easy", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"15–30 cm", diet:"Omnivore",
+ short:"Similar to the white seabream but with just two dark bands, at head and tail.",
+ more:"Easily confused with its cousin the white seabream, but the two-banded seabream only has dark markings near its head and tail rather than full body bars. Schools around rocky bottoms and harbour walls."},
+
+{id:"oblada", en:"Saddled Seabream", es:"Oblada", wiki:"Oblada melanura", cat:"fish", icon:"🐟",
+ difficulty:"Easy", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"15–25 cm", diet:"Omnivore — small invertebrates and algae",
+ short:"Silver fish with a neat black spot ringed in white near the tail — the 'saddle'.",
+ more:"Named for the distinctive black-and-white spot near its tail (like a saddle), the oblada is bold and curious — it will often swim right up to snorkellers, especially in areas where people feed fish (please don't — it's not good for them!). Forms large shimmering schools."},
+
+{id:"annular-seabream", en:"Annular Seabream", es:"Raspallón", wiki:"Diplodus annularis", cat:"fish", icon:"🐟",
+ difficulty:"Easy", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"10–18 cm", diet:"Omnivore",
+ short:"A small seabream with a distinct black ring near the tail, common in shallow sandy bays.",
+ more:"The smallest of the local seabream family, easily told apart by the neat black ring circling its tail base. Juveniles are especially common in shallow, sandy, sheltered bays — a great one for young snorkellers to find close to shore."},
+
+{id:"bogue", en:"Bogue", es:"Boga", wiki:"Boops boops", cat:"fish", icon:"🐟",
+ difficulty:"Easy", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"15–25 cm", diet:"Omnivore — plankton and algae",
+ short:"A slim silvery-blue fish with a yellow stripe, often in big loose schools.",
+ more:"Bogue are one of the most abundant schooling fish in the Mediterranean, forming large, loose, glittering shoals in open water just off the rocks. Easy to see, if not always easy to tell apart from similar silvery fish at a glance."},
+
+{id:"giltheadbream", en:"Gilt-head Bream", es:"Dorada", wiki:"Gilt-head bream", cat:"fish", icon:"🐟",
+ difficulty:"Medium", months:[5,6,7,8,9,10],
+ size:"30–45 cm (up to 70 cm)", diet:"Omnivore — shellfish, crustaceans, some plants",
+ short:"A prized silvery fish with a golden stripe between its eyes.",
+ more:"Easy to identify by the golden band across its forehead, the gilt-head bream is a prized food fish and correspondingly a bit shy of snorkellers. Look for it cruising alone or in small groups over sandy patches near rocks."},
+
+{id:"common-pandora", en:"Common Pandora", es:"Breca", wiki:"Pagellus erythrinus", cat:"fish", icon:"🐟",
+ difficulty:"Medium", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"20–30 cm", diet:"Carnivore — small invertebrates",
+ short:"A pale pink bream often seen hovering over sandy patches near reefs.",
+ more:"Common pandora have a delicate pinkish-silver colour and a slightly pointed snout. They tend to hang over open sandy ground close to rocky reefs rather than hiding in crevices, making them a nice mid-water spot."},
+
+{id:"peacock-wrasse", en:"Peacock Wrasse", es:"Tordo / Merlo", wiki:"Symphodus tinca", cat:"fish", icon:"🐠",
+ difficulty:"Easy", months:[3,4,5,6,7,8,9,10,11],
+ size:"15–25 cm", diet:"Carnivore — small crustaceans and molluscs",
+ short:"A colourful rock-dweller, males flash blue-green with orange highlights.",
+ more:"Male peacock wrasse are strikingly colourful — blue-green bodies with orange-red markings — while females are duller brown. They dart between rocks and seagrass, picking off tiny invertebrates. Very common around Jávea's rocky coves."},
+
+{id:"rainbow-wrasse", en:"Rainbow Wrasse", es:"Julia", wiki:"Coris julis", cat:"fish", icon:"🐟",
+ difficulty:"Easy", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"15–20 cm (up to 30 cm)", diet:"Carnivore — small invertebrates",
+ short:"A quick, brightly striped fish — one of the most common you'll ever see.",
+ more:"Rainbow wrasse change colour pattern as they grow: young fish have an orange body with a blue-black stripe, while older ones shift patterns entirely. They're fast, constant swimmers and appear on almost every snorkel. Fun fact: their Spanish name is 'Julia' — exactly like our own Julia!"},
+
+{id:"ornate-wrasse", en:"Ornate Wrasse", es:"Doncella / Fredi", wiki:"Thalassoma pavo", cat:"fish", icon:"🐠",
+ difficulty:"Medium", months:[5,6,7,8,9,10],
+ size:"15–20 cm", diet:"Carnivore — invertebrates picked off rocks",
+ short:"A warm-water wrasse in bold green, blue, pink and yellow bands.",
+ more:"Males are spectacularly coloured with green bodies, blue heads, and pink-yellow banding. Once rare this far north, warming Mediterranean waters mean they're now seen more often around Jávea in summer — a good one to watch for as the sea warms up."},
+
+{id:"parrotfish", en:"Mediterranean Parrotfish", es:"Vieja / Pez loro", wiki:"Sparisoma cretense", cat:"fish", icon:"🦜",
+ difficulty:"Medium", months:[6,7,8,9,10],
+ size:"20–35 cm (up to 50 cm)", diet:"Herbivore — scrapes algae off rocks with a beak-like mouth",
+ short:"The only parrotfish in the Mediterranean; males blue-grey, females rusty red.",
+ more:"Males and females look completely different: males are blue-grey with orange trim, while females are a warm reddish-orange. Both have a distinctive beak-like mouth used to scrape algae from rocks. A special find that shows how special the Mediterranean's few tropical-looking fish are."},
+
+{id:"damselfish", en:"Damselfish", es:"Castañuela", wiki:"Chromis chromis", cat:"fish", icon:"🐟",
+ difficulty:"Easy", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"10–15 cm", diet:"Zooplankton",
+ short:"Tiny dark fish forming huge shimmering clouds above the rocks.",
+ more:"Damselfish gather in dense, twinkling shoals just above rocky reefs, picking plankton from the water. Young damselfish are a dazzling electric blue before darkening with age. They're often the very first fish you'll see the moment you put your face in the water."},
+
+{id:"peacock-blenny", en:"Peacock Blenny", es:"Babosa / Lagarto", wiki:"Salaria pavo", cat:"fish", icon:"🐡",
+ difficulty:"Easy", months:[4,5,6,7,8,9],
+ size:"8–14 cm", diet:"Omnivore — algae and tiny invertebrates",
+ short:"A tiny big-eyed fish that perches on rocks and pops in and out of small holes.",
+ more:"Peacock blennies are curious little fish with big eyes and (in breeding males) a comical crest on the head. They perch on rocks in very shallow water, ducking into small holes and crevices when startled, then popping back out to look around."},
+
+{id:"tompot-blenny", en:"Tompot Blenny", es:"Torillo", wiki:"Tompot blenny", cat:"fish", icon:"🐡",
+ difficulty:"Easy", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"8–12 cm", diet:"Omnivore — grazes algae and tiny prey",
+ short:"A small, big-eyed fish with feathery head tufts, often resting on rocks in shallow water.",
+ more:"Tompot blennies are easy to recognise thanks to the little branched tufts above their eyes. They're not shy — often sitting in full view on a rock ledge, watching the world (and passing snorkellers) go by."},
+
+{id:"rock-goby", en:"Rock Goby", es:"Cabocho / Chafarrocas", wiki:"Gobius paganellus", cat:"fish", icon:"🐟",
+ difficulty:"Easy", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"8–12 cm", diet:"Carnivore — small invertebrates",
+ short:"A small mottled fish that perches motionless on rocks in shallow pools.",
+ more:"Rock gobies sit propped up on their front fins on rocks in very shallow water, staying still rather than swimming away, which makes them a satisfying and easy species for kids to get a good close look at."},
+
+{id:"cardinalfish", en:"Mediterranean Cardinalfish", es:"Cardenal", wiki:"Apogon imberbis", cat:"fish", icon:"🐠",
+ difficulty:"Medium", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"10–15 cm", diet:"Carnivore — small crustaceans",
+ short:"A bright red, big-eyed fish usually seen hovering in shaded caves and under ledges.",
+ more:"Cardinalfish are most active at night but spend the day hovering in small groups inside dark caves, crevices and under overhangs, their bright red colour glowing in torchlight or bright sun shafts. Peer gently into shaded rocky gaps to find them."},
+
+{id:"painted-comber", en:"Painted Comber", es:"Serrano", wiki:"Serranus scriba", cat:"fish", icon:"🐠",
+ difficulty:"Easy", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"15–25 cm", diet:"Carnivore — small fish and crustaceans",
+ short:"Reddish wavy stripes and a telltale blue spot near the tail; sits still on rock or sand.",
+ more:"Look for wavy reddish-brown stripes and a distinctive blue spot near the tail fin. Painted combers often sit almost motionless on sand or rock, making them a satisfying, easy find once you know what to look for. Like all combers, each fish is both male and female (a hermaphrodite)."},
+
+{id:"comber", en:"Comber", es:"Cabrilla", wiki:"Serranus cabrilla", cat:"fish", icon:"🐠",
+ difficulty:"Medium", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"15–20 cm", diet:"Carnivore",
+ short:"Reddish barred, similar to the painted comber but without the blue tail spot.",
+ more:"A close relative of the painted comber, with reddish bars but lacking the blue spot near the tail. It waits still on rocks and sand, ambushing small prey that swims too close."},
+
+{id:"grouper", en:"Dusky Grouper", es:"Mero", wiki:"Epinephelus marginatus", cat:"fish", icon:"🐋",
+ difficulty:"Rare", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"Up to 100–150 cm (young ones seen more often, 20–40 cm)", diet:"Carnivore — fish and crustaceans",
+ short:"A huge, mottled brown protected fish — a truly special sighting.",
+ more:"Once fished almost to disappearance, the dusky grouper is now protected and slowly recovering. Big adults are a very rare sight for snorkellers, but younger fish sometimes shelter in shallow rocky gullies. Spotting one — of any size — is a real event worth celebrating."},
+
+{id:"mullet", en:"Flathead Grey Mullet", es:"Mújol / Lisa", wiki:"Mugil cephalus", cat:"fish", icon:"🐟",
+ difficulty:"Easy", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"30–50 cm", diet:"Detritus and algae, filtered from sediment",
+ short:"A torpedo-shaped silver fish often seen in big schools near harbours.",
+ more:"Grey mullet cruise in large schools close to the surface, especially near harbour walls, river mouths and shallow sandy bays. They sometimes leap clear of the water. A very reliable species to spot even on a calm, easy day."},
+
+{id:"sand-smelt", en:"Sand Smelt", es:"Pejerrey", wiki:"Atherina hepsetus", cat:"fish", icon:"🐟",
+ difficulty:"Easy", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"8–12 cm", diet:"Plankton",
+ short:"Tiny silver fish darting in dense flickering schools right at the surface.",
+ more:"Sand smelt gather in huge, shimmering schools in shallow, sheltered bays, often right where the water meets the sand at the shoreline. A brilliant, easy first sighting for younger snorkellers still getting used to their mask."},
+
+{id:"red-mullet", en:"Red Mullet", es:"Salmonete", wiki:"Mullus surmuletus", cat:"fish", icon:"🐟",
+ difficulty:"Medium", months:[4,5,6,7,8,9,10],
+ size:"15–25 cm", diet:"Carnivore — uses barbels to sense prey in sand",
+ short:"A reddish-pink fish with two long feelers under its chin for finding food in the sand.",
+ more:"Red mullet use a pair of sensitive barbels under the chin to probe sandy and gravelly patches for buried prey, often followed closely by other fish hoping to steal a meal. Their pink-red colouring makes them fairly easy to pick out over pale sand."},
+
+{id:"horse-mackerel", en:"Atlantic Horse Mackerel", es:"Jurel", wiki:"Atlantic horse mackerel", cat:"fish", icon:"🐟",
+ difficulty:"Medium", months:[5,6,7,8,9,10],
+ size:"20–35 cm", diet:"Carnivore — small fish and plankton",
+ short:"A fast silver schooler with a distinctive line of bony scutes along its side.",
+ more:"Look closely along the horse mackerel's flank and you'll spot a row of small, hard bony plates (scutes) running from head to tail — a great identifying feature. They move fast in open-water schools, so a sighting is often brief."},
+
+{id:"garfish", en:"Garfish", es:"Aguja / Agujeta", wiki:"Belone belone", cat:"fish", icon:"🐟",
+ difficulty:"Medium", months:[4,5,6,7,8,9],
+ size:"40–60 cm", diet:"Carnivore — small fish",
+ short:"An extremely thin, long fish with a needle-like beak, swimming near the surface.",
+ more:"Impossible to mistake for anything else — garfish are needle-thin with a long beak-like jaw, swimming right at the surface. A fun fact for the kids: their bones are naturally green, which is completely harmless!"},
+
+{id:"barracuda", en:"European Barracuda", es:"Espetón", wiki:"Sphyraena sphyraena", commonsFile:"Sphyraena sphyraena (Barracudas) (22471310912).jpg", cat:"fish", icon:"🐟",
+ difficulty:"Medium", months:[6,7,8,9],
+ size:"Juveniles 15–30 cm (adults over 1 m, rarely seen inshore)", diet:"Carnivore — small fish",
+ short:"A long, silver, torpedo-shaped fish — young ones shoal near the surface in summer.",
+ more:"Don't worry — the European barracuda is shy of people and the ones you'll see snorkeling are young, small shoaling fish, not the giant solitary hunters of the tropics. Look for their unmistakable long slim silver bodies hovering just under the surface on calm summer days."},
+
+{id:"brown-meagre", en:"Brown Meagre", es:"Corvina", wiki:"Sciaena umbra", cat:"fish", icon:"🐟",
+ difficulty:"Hard", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"25–40 cm (up to 70 cm)", diet:"Carnivore — fish and crustaceans",
+ short:"Dark bronze fish that gathers in still groups inside caves and under overhangs.",
+ more:"Brown meagre shoal motionless in shaded caves and rocky overhangs during the day, only becoming active hunters after dark. Protected across much of the Mediterranean, so seeing a group hovering in a cave entrance is a real treat — approach calmly so as not to disturb them."},
+
+{id:"sole", en:"Common Sole", es:"Lenguado", wiki:"Common sole", cat:"fish", icon:"🐟",
+ difficulty:"Hard", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"20–40 cm", diet:"Carnivore — worms and small crustaceans",
+ short:"A flat, sand-coloured fish that lies buried and almost invisible on the sea floor.",
+ more:"Soles are flatfish with both eyes on one side of the body, lying flush against the sand where they're almost perfectly camouflaged. Often the only giveaway is a fish-shaped outline or a puff of sand as it flicks away. A real test of sharp eyes."},
+
+{id:"seabass", en:"European Seabass", es:"Lubina", wiki:"European seabass", cat:"fish", icon:"🐟",
+ difficulty:"Hard", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"30–60 cm", diet:"Carnivore — fish and crustaceans",
+ short:"A sleek, wary silver hunter patrolling the surf zone and rocky edges.",
+ more:"Seabass are sharp-eyed, fast, and wary of snorkellers, often only glimpsed for a moment before they vanish. Look for them hunting along the edge where waves break on rocks, especially at dawn or dusk."},
+
+{id:"moray", en:"Mediterranean Moray Eel", es:"Morena", wiki:"Muraena helena", cat:"fish", icon:"🐍",
+ difficulty:"Hard", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"60–100+ cm", diet:"Carnivore — fish and octopus",
+ short:"A snake-like eel with a mottled brown pattern, hiding head-out from rock crevices.",
+ more:"Morays spend the day tucked into crevices with just their head poking out, mouth opening and closing rhythmically — that's just how they breathe, not aggression! They're shy and will retreat if approached. Look, admire, never reach into a crevice."},
+
+{id:"scorpionfish", en:"Black Scorpionfish", es:"Rascacio / Escórpora", wiki:"Scorpaena porcus", cat:"fish", icon:"🪨",
+ difficulty:"Hard", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"15–25 cm", diet:"Carnivore — ambush predator of small fish",
+ short:"A camouflaged, spiny fish that sits so still it looks like a lump of rock.",
+ more:"Scorpionfish are masters of staying still and blending into rocky, weedy backgrounds, making them genuinely hard to spot. Their spines carry venom that gives a painful sting — admire from a distance and never touch rocks or crevices you can't see into clearly."},
+
+{id:"weever", en:"Greater Weever", es:"Araña / Peje araña", wiki:"Greater weever", cat:"fish", icon:"⚠️",
+ difficulty:"Hard", months:[4,5,6,7,8,9,10],
+ size:"15–30 cm", diet:"Carnivore — ambushes small fish from hiding",
+ short:"A sand-coloured fish that buries itself with venomous spines upright — never step on one.",
+ more:"Weever fish bury themselves in sand with just their eyes and venomous dorsal spines showing, waiting to ambush prey. Their sting is very painful (though rarely dangerous) if trodden on. This is an important 'look, never touch, and shuffle your feet in sandy shallows' species to know about, more than one to go hunting for."},
+
+{id:"stingray", en:"Common Stingray", es:"Raya látigo / Chucho", wiki:"Common stingray", cat:"fish", icon:"🩻",
+ difficulty:"Hard", months:[5,6,7,8,9,10],
+ size:"Disc 30–45 cm (up to 2 m including tail)", diet:"Carnivore — buries in sand to ambush crustaceans and molluscs",
+ short:"A diamond-shaped ray that buries itself in sandy patches — never touch its tail.",
+ more:"Stingrays spend much of their time buried in sand with just their eyes showing, making them hard to spot until they glide away. They carry a venomous spine on their tail for defence — always shuffle your feet when wading into sandy shallows, and admire from a distance if you see one."},
+
+{id:"cuttlefish", en:"Common Cuttlefish", es:"Sepia / Jibia", wiki:"Sepia officinalis", cat:"cephalopod", icon:"🦑",
+ difficulty:"Medium", months:[4,5,6,7,8],
+ size:"20–30 cm mantle", diet:"Carnivore — small fish and shrimp",
+ short:"Hovers using a rippling fin, with strange W-shaped pupils and shifting colours.",
+ more:"Cuttlefish hover motionless using a fin that ripples around their whole body, and their skin flashes constantly with waves of colour and pattern — partly for camouflage, partly communication. Look closely and you'll notice their unusual W-shaped pupils. Most often seen inshore in spring and early summer."},
+
+{id:"octopus", en:"Common Octopus", es:"Pulpo", wiki:"Octopus vulgaris", cat:"cephalopod", icon:"🐙",
+ difficulty:"Hard", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"Arm span up to 1 m", diet:"Carnivore — crabs and molluscs",
+ short:"A master of disguise that changes colour and texture in an instant.",
+ more:"The common octopus is famously intelligent and can change both colour and skin texture to vanish against rocks in a split second. Often the only clue is a shifting patch of 'rock' or a trail of shell debris outside a den. A real prize to find — take your time scanning crevices."},
+
+{id:"red-starfish", en:"Red Starfish", es:"Estrella de mar roja", wiki:"Echinaster sepositus", cat:"echinoderm", icon:"⭐",
+ difficulty:"Easy", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"10–15 cm arm span", diet:"Sponges and detritus",
+ short:"A bright orange-red, knobbly-armed starfish that sits still on rocks.",
+ more:"One of the easiest 'wins' for young snorkellers — bright orange-red and slow-moving, often resting in plain sight on rocks or seagrass. Please look but don't lift starfish out of the water; they breathe through their skin and can be harmed."},
+
+{id:"purple-urchin", en:"Purple Sea Urchin", es:"Erizo de mar / Erizo morado", wiki:"Paracentrotus lividus", cat:"echinoderm", icon:"🟣",
+ difficulty:"Easy", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"5–7 cm", diet:"Herbivore — grazes algae",
+ short:"Dark purple, spiny, and wedged into rock crevices — watch your hands and feet!",
+ more:"Purple sea urchins wedge themselves into cracks in the rocks and are extremely common. Their spines can give a painful (though not dangerous) sting if trodden on or grabbed — a great excuse to teach the kids to look, not touch, and always wear pool shoes on rocky entries."},
+
+{id:"black-urchin", en:"Black Sea Urchin", es:"Erizo negro", wiki:"Arbacia lixula", cat:"echinoderm", icon:"⚫",
+ difficulty:"Easy", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"4–6 cm", diet:"Herbivore",
+ short:"Jet black with shorter spines than its purple cousin — common on sunlit rocks.",
+ more:"Similar to the purple sea urchin but jet black with noticeably shorter, stubbier spines. It prefers well-lit, shallow rocky areas, so it's often one of the first creatures you'll spot right at the water's edge."},
+
+{id:"sea-cucumber", en:"Sea Cucumber", es:"Cohombro de mar", wiki:"Holothuria tubulosa", cat:"echinoderm", icon:"🥒",
+ difficulty:"Medium", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"15–30 cm", diet:"Detritus feeder — sifts organic matter from sand",
+ short:"A soft, leathery, sausage-shaped animal lying on sand or seagrass.",
+ more:"Sea cucumbers look like large dark leathery sausages resting on the seabed, quietly recycling nutrients by sifting through sand and detritus. They're harmless but can release sticky defensive threads if squeezed — a good one to observe gently without picking up."},
+
+{id:"anemone", en:"Snakelocks Anemone", es:"Anémona serpentina / Ortiguilla", wiki:"Anemonia viridis", cat:"cnidarian", icon:"🌿",
+ difficulty:"Easy", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"10–20 cm tentacle spread", diet:"Carnivore — catches tiny prey with stinging tentacles",
+ short:"Bright green, waving tentacles (often purple-tipped) on sunlit rocks.",
+ more:"Snakelocks anemones cover sunny shallow rocks with their swaying green tentacles, often tipped in purple. They can give a mild sting to human skin, so look but don't poke — a great, easy find for the very first minutes of any snorkel."},
+
+{id:"mauve-stinger", en:"Mauve Stinger Jellyfish", es:"Aguamala / Medusa", wiki:"Pelagia noctiluca", cat:"cnidarian", icon:"🎐",
+ difficulty:"Hard", months:[7,8,9],
+ size:"Bell 3–12 cm, tentacles much longer", diet:"Carnivore — plankton",
+ short:"A pretty pink-mauve jellyfish with a real sting — admire from a distance.",
+ more:"Translucent pink-mauve with dark spots across the bell, this jellyfish drifts with the current and appears in warm-water pulses in late summer. Its sting is genuinely uncomfortable, so it's one to spot and steer well clear of rather than get close to."},
+
+{id:"fried-egg-jelly", en:"Fried Egg Jellyfish", es:"Huevo frito", wiki:"Cotylorhiza tuberculata", cat:"cnidarian", icon:"🍳",
+ difficulty:"Rare", months:[8,9,10],
+ size:"Bell up to 35–40 cm", diet:"Plankton, filtered via tiny mouths on its arms",
+ short:"A big yellow-domed jellyfish that looks exactly like a fried egg drifting by.",
+ more:"Unmistakable and delightful for kids — a wide, gently domed jellyfish with a yellow-orange centre that really does look like a fried egg. Its sting is very mild and rarely bothers people. A late-summer treat to look out for."},
+
+{id:"sea-hare", en:"Sea Hare", es:"Liebre de mar", wiki:"Aplysia depilans", cat:"mollusk", icon:"🐌",
+ difficulty:"Medium", months:[3,4,5,6,7,8],
+ size:"Up to 30–40 cm", diet:"Herbivore — seaweed",
+ short:"A large soft sea slug that releases a cloud of purple ink if it feels threatened.",
+ more:"Despite the name, sea hares are large, soft-bodied sea slugs, often mottled brown or green to match the seaweed they graze on. If startled, they can release a cloud of purple-red ink as a defence — fascinating to watch from a respectful distance."},
+
+{id:"pen-shell", en:"Noble Pen Shell", es:"Nacra", wiki:"Pinna nobilis", cat:"mollusk", icon:"🐚",
+ difficulty:"Rare", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"Shell up to 80–120 cm — the largest bivalve in the Mediterranean", diet:"Filter feeder",
+ short:"A giant fan-shaped shell rooted upright in seagrass — now critically endangered.",
+ more:"The noble pen shell is the largest shellfish in the Mediterranean, standing upright in seagrass meadows like a giant fan. Since 2016 a disease has wiped out the vast majority of the population across the whole sea, so finding a living one is now genuinely rare and special — please never touch or disturb one, and consider reporting a sighting to a local marine conservation group."},
+
+{id:"nudibranch", en:"Nudibranch", es:"Babosa de mar / Nudibranquio", wiki:"Nudibranch", cat:"mollusk", icon:"🌈",
+ difficulty:"Rare", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"1–6 cm", diet:"Carnivore — sponges and hydroids",
+ short:"Tiny, jewel-coloured sea slugs — a real find for a sharp-eyed explorer checking rocks closely.",
+ more:"Nudibranchs are small, brightly coloured sea slugs that come in a huge variety of patterns and colours, often no bigger than a fingernail. They're easy to miss entirely — finding one takes patient, close-up searching over rocks and algae, which makes spotting one extra rewarding."},
+
+{id:"spider-crab", en:"Spiny Spider Crab", es:"Centolla / Araña de mar", wiki:"Maja squinado", cat:"crustacean", icon:"🦀",
+ difficulty:"Medium", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"Shell up to 20 cm", diet:"Omnivore — scavenges what it can find",
+ short:"A spiky, slow-moving crab that often camouflages itself with algae and sponges.",
+ more:"Spider crabs decorate their spiky shells with bits of algae and sponge as camouflage, so they can be surprisingly well hidden even out in the open. Look for their long, spindly legs moving slowly among rocks and seagrass."},
+
+{id:"fanworm", en:"Mediterranean Fanworm", es:"Gusano de plumero", wiki:"Sabella spallanzanii", cat:"worm", icon:"🌸",
+ difficulty:"Easy", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"20–30 cm plume", diet:"Filter feeder",
+ short:"A colourful spiral feather-like crown that vanishes into its tube in a flash if disturbed.",
+ more:"Fanworms build a soft tube in the sand or on rocks and extend a beautiful spiral, feather-like crown to filter food from the water. Swim past too quickly or cast a shadow over one and it will snap back into its tube instantly — a fun one to watch (gently, without touching)."},
+
+{id:"sea-squirt", en:"Light-bulb Sea Squirt", es:"Ascidia", wiki:"Light-bulb sea squirt", cat:"tunicate", icon:"💡",
+ difficulty:"Easy", months:[1,2,3,4,5,6,7,8,9,10,11,12],
+ size:"Colonies of 1–3 cm individuals", diet:"Filter feeder",
+ short:"Small see-through, glowing sea squirts clustered together like tiny light bulbs on shaded rocks.",
+ more:"Look in shaded spots under rocky overhangs for clusters of these small, translucent, faintly yellow-tinged sea squirts, which really do look like little glass light bulbs stuck to the rock. Easy to miss until you know to look for them, then surprisingly common."},
+
+{id:"seahorse", en:"Long-snouted Seahorse", es:"Caballito de mar", wiki:"Long-snouted seahorse", cat:"fish", icon:"🐴",
+ difficulty:"Rare", months:[5,6,7,8,9],
+ size:"12–18 cm", diet:"Carnivore — tiny crustaceans",
+ short:"A magical, protected find — a seahorse holding onto seagrass with its curled tail.",
+ more:"Long-snouted seahorses live camouflaged among seagrass and algae, gripping a frond with their curled tail and swaying gently with the current. They're protected and genuinely rare to find — move slowly, never touch or chase one, and treasure the moment if you're lucky enough to spot one."},
+
+{id:"turtle", en:"Loggerhead Sea Turtle", es:"Tortuga boba", wiki:"Loggerhead sea turtle", cat:"reptile", icon:"🐢",
+ difficulty:"Rare", months:[6,7,8,9],
+ size:"Shell up to 90 cm+", diet:"Omnivore — jellyfish, shellfish, seagrass",
+ short:"An occasional, unforgettable visitor gliding through open water — admire from a distance.",
+ more:"Loggerhead turtles are protected, occasional visitors to the waters off Jávea, sometimes seen gliding through open water or feeding near jellyfish blooms. If you're lucky enough to see one, keep a respectful distance, never chase or touch it, and simply enjoy watching it swim by."},
+];
+
+/* ======================= CARD-GAME META ======================= */
+const TYPE_META = {
+  fish:{label:"Fish", color:"#3E7CFF"},
+  cephalopod:{label:"Cephalopod", color:"#8C52FF"},
+  echinoderm:{label:"Echinoderm", color:"#FF8C3E"},
+  cnidarian:{label:"Cnidarian", color:"#FF6FA8"},
+  mollusk:{label:"Mollusk", color:"#A9744F"},
+  crustacean:{label:"Crustacean", color:"#FF4B4B"},
+  worm:{label:"Worm", color:"#4CAF6D"},
+  tunicate:{label:"Tunicate", color:"#2EC4C4"},
+  reptile:{label:"Reptile", color:"#2E8B57"}
+};
+const RARITY_META = {
+  Easy:{label:"COMMON", color:"#9AA5B1", gems:1, holo:false},
+  Medium:{label:"UNCOMMON", color:"#3FA34D", gems:2, holo:false},
+  Hard:{label:"RARE", color:"#3E7CFF", gems:3, holo:false},
+  Rare:{label:"ULTRA RARE", color:"#E8B94B", gems:4, holo:true}
+};
+
+function buildCardHTML(sp, opts){
+  opts = opts || {};
+  const idx = SPECIES.indexOf(sp);
+  const num = String(idx+1).padStart(2,'0');
+  const rarity = RARITY_META[sp.difficulty];
+  const type = TYPE_META[sp.cat] || {label:sp.cat, color:'#888'};
+  const relevantSightings = (opts.personFilter && opts.personFilter!=='all')
+    ? sightingsFor(sp.id).filter(s=>s.spotter===opts.personFilter)
+    : sightingsFor(sp.id);
+  const count = relevantSightings.length;
+  const gemsHTML = Array.from({length:4}).map((_,i)=> `<span class="gem ${i<rarity.gems?'on':''}"></span>`).join('');
+  const showDetails = !opts.compact;
+  return `
+    <div class="tcard ${rarity.holo?'holo':''} ${opts.mini?'mini':''}" style="--rcolor:${rarity.color}" data-card-id="${sp.id}">
+      <div class="tcard-inner">
+        <div class="tcard-head">
+          <span class="tcard-name">${sp.en}</span>
+          <span class="tcard-gems">${gemsHTML}</span>
+        </div>
+        <div class="tcard-type" style="background:${type.color}">${type.label}</div>
+        <div class="tcard-art" data-thumb="${sp.id}">
+          <span class="art-placeholder">${sp.icon}</span>
+          ${count>0 ? '<div class="caught-seal">✓</div>' : ''}
+        </div>
+        <div class="tcard-subname">${sp.es}</div>
+        ${showDetails ? `
+        <div class="tcard-stats">
+          <div>📏 ${sp.size}</div>
+          <div>🍽️ ${sp.diet}</div>
+        </div>
+        <div class="tcard-flavor">${sp.short}</div>
+        ` : ''}
+        <div class="tcard-footer">
+          <span class="tcard-number">No. ${num}/50</span>
+          <span class="tcard-rarity" style="color:${rarity.color}">${rarity.label}</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function mountCardImage(sp, containerEl){
+  getSpeciesImage(sp).then(url=>{
+    if(!url || !containerEl) return;
+    const artEl = containerEl.querySelector(`.tcard-art[data-thumb="${sp.id}"]`);
+    if(!artEl) return;
+    const ph = artEl.querySelector('.art-placeholder');
+    const img = document.createElement('img');
+    img.src = url; img.alt = sp.en; img.className='art-img';
+    if(ph) ph.replaceWith(img); else artEl.prepend(img);
+  });
+}
+
+/* ======================= STORAGE ======================= */
+const STORE_KEY = "javea-snorkel-log-v1";
+
+function loadSightings(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){ return []; }
+}
+function saveSightings(list){
+  localStorage.setItem(STORE_KEY, JSON.stringify(list));
+}
+let sightings = loadSightings();
+
+function addSighting(speciesId, date, spotter, note){
+  sightings.push({id: Date.now()+"-"+Math.random().toString(36).slice(2,7), speciesId, date, spotter, note: note||""});
+  saveSightings(sightings);
+}
+function deleteSighting(id){
+  sightings = sightings.filter(s=>s.id!==id);
+  saveSightings(sightings);
+}
+function updateSighting(id, date, spotter, note){
+  const s = sightings.find(x=>x.id===id);
+  if(s){ s.date=date; s.spotter=spotter; s.note=note||""; saveSightings(sightings); }
+}
+function sightingsFor(speciesId){
+  return sightings.filter(s=>s.speciesId===speciesId).sort((a,b)=> b.date.localeCompare(a.date));
+}
+
+/* ======================= TOAST ======================= */
+let toastTimer;
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+/* ======================= NAV ======================= */
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('view-'+tab.dataset.view).classList.add('active');
+    document.body.classList.toggle('atlas-mode', tab.dataset.view==='atlas');
+  });
+});
+
+/* ======================= IMAGE FETCH (Wikipedia + Commons override) ======================= */
+const imgCache = {};
+async function getWikiImage(title){
+  if(imgCache[title]!==undefined) return imgCache[title];
+  try{
+    const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
+    if(!res.ok) throw new Error('no page');
+    const data = await res.json();
+    const url = (data.thumbnail && data.thumbnail.source) || (data.originalimage && data.originalimage.source) || null;
+    imgCache[title] = url;
+    return url;
+  }catch(e){
+    imgCache[title] = null;
+    return null;
+  }
+}
+
+const commonsCache = {};
+async function getCommonsFileUrl(filename){
+  if(commonsCache[filename]!==undefined) return commonsCache[filename];
+  try{
+    const api = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent('File:'+filename)}&prop=imageinfo&iiprop=url&iiurlwidth=500&format=json&origin=*`;
+    const res = await fetch(api);
+    const data = await res.json();
+    const pages = data.query && data.query.pages;
+    const page = pages ? Object.values(pages)[0] : null;
+    const info = page && page.imageinfo && page.imageinfo[0];
+    const url = info ? (info.thumburl || info.url) : null;
+    commonsCache[filename] = url;
+    return url;
+  }catch(e){
+    commonsCache[filename] = null;
+    return null;
+  }
+}
+
+async function getSpeciesImage(sp){
+  if(sp.commonsFile){
+    const url = await getCommonsFileUrl(sp.commonsFile);
+    if(url) return url;
+  }
+  return await getWikiImage(sp.wiki);
+}
+
+/* ======================= FISH OF THE DAY ======================= */
+function getFishOfDay(d){
+  const month = d.getMonth()+1;
+  const dayKey = d.toISOString().slice(0,10);
+  let pool = SPECIES.filter(s=>s.months.includes(month));
+  if(pool.length===0) pool = SPECIES;
+  let hash=0;
+  for(let i=0;i<dayKey.length;i++){ hash = (hash*31 + dayKey.charCodeAt(i)) >>> 0; }
+  return pool[hash % pool.length];
+}
+
+/* ======================= WEATHER / CONDITIONS ======================= */
+const JAVEA_LAT = 38.789, JAVEA_LON = 0.166;
+
+const WMO = {
+  0:"Clear sky",1:"Mostly clear",2:"Partly cloudy",3:"Overcast",
+  45:"Fog",48:"Fog",51:"Light drizzle",53:"Drizzle",55:"Heavy drizzle",
+  61:"Light rain",63:"Rain",65:"Heavy rain",71:"Light snow",73:"Snow",75:"Heavy snow",
+  80:"Rain showers",81:"Rain showers",82:"Violent showers",95:"Thunderstorm",96:"Thunderstorm",99:"Thunderstorm"
+};
+
+async function fetchConditions(){
+  try{
+    const [wRes, mRes] = await Promise.all([
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${JAVEA_LAT}&longitude=${JAVEA_LON}&current=temperature_2m,wind_speed_10m,weather_code&timezone=Europe%2FMadrid`),
+      fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${JAVEA_LAT}&longitude=${JAVEA_LON}&current=wave_height,wave_period&timezone=Europe%2FMadrid`)
+    ]);
+    const wData = wRes.ok ? await wRes.json() : null;
+    const mData = mRes.ok ? await mRes.json() : null;
+    return {
+      airTemp: wData && wData.current ? wData.current.temperature_2m : null,
+      windSpeed: wData && wData.current ? wData.current.wind_speed_10m : null,
+      weatherCode: wData && wData.current ? wData.current.weather_code : null,
+      waveHeight: mData && mData.current ? mData.current.wave_height : null,
+      wavePeriod: mData && mData.current ? mData.current.wave_period : null
+    };
+  }catch(e){
+    return null;
+  }
+}
+
+function rateConditions(c){
+  if(!c || c.waveHeight==null || c.windSpeed==null) return null;
+  const wave = c.waveHeight, wind = c.windSpeed;
+  if(wave<0.3 && wind<15) return {label:"Excellent", idx:3};
+  if(wave<0.6 && wind<25) return {label:"Good", idx:2};
+  if(wave<1.0 && wind<35) return {label:"Fair", idx:1};
+  return {label:"Poor", idx:0};
+}
+
+function explainRating(wave, wind, idx){
+  const w = wave.toFixed(1);
+  const wd = Math.round(wind);
+  const notes = [
+    `Waves near ${w} m and wind around ${wd} km/h are stirring things up — that combination usually clouds the water, so today rates Poor.`,
+    `Waves around ${w} m and wind near ${wd} km/h make for a slightly choppy sea — doable, but visibility may drop close to shore, so it rates Fair.`,
+    `Waves are a settled ${w} m with wind near ${wd} km/h — calm enough for clear, easy snorkeling, so today rates Good.`,
+    `Barely any swell (${w} m) and just ${wd} km/h of wind — about as calm and clear as Jávea gets, so today rates Excellent!`
+  ];
+  return notes[idx];
+}
+
+/* ---- Semicircle gauge, 4 colour bands + needle ---- */
+const GAUGE_COLORS_HEX = ["#FF6B6B","#FFC93C","#8BC34A","#2EC4B6"];
+
+function polarToCartesian(cx, cy, r, angleDeg){
+  const rad = angleDeg * Math.PI / 180;
+  return { x: cx + r*Math.cos(rad), y: cy - r*Math.sin(rad) };
+}
+function describeArc(cx, cy, r, startAngle, endAngle){
+  const start = polarToCartesian(cx, cy, r, startAngle);
+  const end = polarToCartesian(cx, cy, r, endAngle);
+  const largeArcFlag = Math.abs(startAngle-endAngle) <= 180 ? 0 : 1;
+  return `M ${start.x.toFixed(2)} ${start.y.toFixed(2)} A ${r} ${r} 0 ${largeArcFlag} 1 ${end.x.toFixed(2)} ${end.y.toFixed(2)}`;
+}
+
+function drawGauge(idx){
+  const svg = document.getElementById('dial-svg');
+  const cx=100, cy=104, R=82, sw=26;
+  const bounds = [180,135,90,45,0];
+  let arcs = "";
+  for(let i=0;i<4;i++){
+    arcs += `<path d="${describeArc(cx,cy,R,bounds[i],bounds[i+1])}" fill="none" stroke="${GAUGE_COLORS_HEX[i]}" stroke-width="${sw}" stroke-linecap="butt"/>`;
+  }
+  let needle = "";
+  if(idx!=null){
+    const angle = 180 - (idx+0.5)*45;
+    const tip = polarToCartesian(cx,cy,66,angle);
+    const b1 = polarToCartesian(cx,cy,8,angle+90);
+    const b2 = polarToCartesian(cx,cy,8,angle-90);
+    needle = `
+      <polygon points="${b1.x.toFixed(2)},${b1.y.toFixed(2)} ${tip.x.toFixed(2)},${tip.y.toFixed(2)} ${b2.x.toFixed(2)},${b2.y.toFixed(2)}" fill="#16263D"/>
+      <circle cx="${cx}" cy="${cy}" r="11" fill="#16263D"/>
+      <circle cx="${cx}" cy="${cy}" r="4" fill="#FBFBFE"/>
+    `;
+  }
+  svg.innerHTML = `
+    <rect x="0" y="0" width="200" height="118" fill="none"/>
+    ${arcs}
+    ${needle}
+  `;
+}
+
+async function initConditions(){
+  drawGauge(null);
+  const c = await fetchConditions();
+  const rating = rateConditions(c);
+  const ratingEl = document.getElementById('dial-rating');
+  const descEl = document.getElementById('dial-desc');
+  const rowEl = document.getElementById('conditions-row');
+
+  if(!rating){
+    ratingEl.textContent = "Conditions unavailable";
+    descEl.textContent = "Couldn't load live sea data right now — check conditions locally before heading out.";
+    drawGauge(null);
+    rowEl.innerHTML = "";
+    return;
+  }
+  drawGauge(rating.idx);
+  ratingEl.textContent = rating.label;
+  ratingEl.style.color = GAUGE_COLORS_HEX[rating.idx];
+  descEl.textContent = explainRating(c.waveHeight, c.windSpeed, rating.idx);
+
+  const bits = [];
+  if(c.airTemp!=null) bits.push(`🌡️ Air ${Math.round(c.airTemp)}°C`);
+  if(c.windSpeed!=null) bits.push(`💨 Wind ${Math.round(c.windSpeed)} km/h`);
+  if(c.waveHeight!=null) bits.push(`🌊 Waves ${c.waveHeight.toFixed(1)} m`);
+  if(c.weatherCode!=null && WMO[c.weatherCode]) bits.push(`☁️ ${WMO[c.weatherCode]}`);
+  rowEl.innerHTML = bits.map(b=>`<span>${b}</span>`).join('');
+}
+
+/* ======================= HOME RENDER ======================= */
+function renderHomeStats(){
+  const today = new Date();
+  document.getElementById('today-date').textContent = today.toLocaleDateString('en-GB', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+
+  const seenIds = new Set(sightings.map(s=>s.speciesId));
+  document.getElementById('stat-seen').textContent = seenIds.size + " / " + SPECIES.length;
+  document.getElementById('stat-total').textContent = sightings.length;
+
+  const counts = {};
+  sightings.forEach(s=>{ counts[s.spotter] = (counts[s.spotter]||0)+1; });
+  let topSpotter = "–";
+  let max = 0;
+  Object.entries(counts).forEach(([k,v])=>{ if(v>max){max=v; topSpotter=k;} });
+  document.getElementById('stat-spotter').textContent = topSpotter;
+
+  if(sightings.length===0){
+    document.getElementById('stat-days').textContent = "–";
+  }else{
+    const lastDate = sightings.map(s=>s.date).sort().pop();
+    const diffDays = Math.floor((today - new Date(lastDate+"T00:00:00")) / (1000*60*60*24));
+    document.getElementById('stat-days').textContent = diffDays;
+  }
+}
+
+function renderFeaturedFish(){
+  const fish = getFishOfDay(new Date());
+  const el = document.getElementById('featured-card');
+  el.innerHTML = buildCardHTML(fish, {mini:true, compact:true});
+  el.querySelector('.tcard').addEventListener('click', ()=>openModal(fish.id));
+  mountCardImage(fish, el);
+}
+
+/* ======================= ATLAS RENDER ======================= */
+let atlasState = { search:"", difficulty:"all", person:"all", caughtFilter:"all" };
+
+function relevantSightingsFor(sp){
+  return atlasState.person==="all"
+    ? sightingsFor(sp.id)
+    : sightingsFor(sp.id).filter(s=>s.spotter===atlasState.person);
+}
+
+function speciesMatchesFilters(sp){
+  if(atlasState.difficulty!=="all" && sp.difficulty!==atlasState.difficulty) return false;
+  if(atlasState.caughtFilter==="caught" && relevantSightingsFor(sp).length===0) return false;
+  if(atlasState.caughtFilter==="uncaught" && relevantSightingsFor(sp).length>0) return false;
+  if(atlasState.search){
+    const q = atlasState.search.toLowerCase();
+    if(!sp.en.toLowerCase().includes(q) && !sp.es.toLowerCase().includes(q)) return false;
+  }
+  return true;
+}
+
+function updateAtlasSubtitle(){
+  const subtitleEl = document.getElementById('atlas-subtitle');
+  if(!subtitleEl) return;
+  if(atlasState.person==="all"){
+    subtitleEl.textContent = "50 cards to collect off the Jávea coast";
+  }else{
+    const caughtCount = new Set(
+      sightings.filter(s=>s.spotter===atlasState.person).map(s=>s.speciesId)
+    ).size;
+    subtitleEl.textContent = `${atlasState.person}'s collection: ${caughtCount}/50 cards caught`;
+  }
+}
+
+function renderAtlas(){
+  const grid = document.getElementById('atlas-grid');
+  const empty = document.getElementById('atlas-empty');
+  updateAtlasSubtitle();
+  const list = SPECIES.filter(speciesMatchesFilters);
+  grid.innerHTML = "";
+  empty.style.display = list.length===0 ? "block" : "none";
+
+  list.forEach(sp=>{
+    const wrap = document.createElement('div');
+    wrap.innerHTML = buildCardHTML(sp, {personFilter: atlasState.person});
+    const cardEl = wrap.firstElementChild;
+    grid.appendChild(cardEl);
+    cardEl.addEventListener('click', ()=>openModal(sp.id));
+    mountCardImage(sp, cardEl);
+  });
+}
+
+document.getElementById('search-box').addEventListener('input', e=>{
+  atlasState.search = e.target.value; renderAtlas();
+});
+document.getElementById('filter-difficulty').addEventListener('change', e=>{
+  atlasState.difficulty = e.target.value; renderAtlas();
+});
+document.getElementById('filter-person').addEventListener('change', e=>{
+  atlasState.person = e.target.value; renderAtlas();
+});
+document.getElementById('filter-caught').addEventListener('change', e=>{
+  atlasState.caughtFilter = e.target.value; renderAtlas();
+});
+
+/* ======================= MODAL ======================= */
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+
+function spotterOptions(selected){
+  return SPOTTERS.map(s=>`<option value="${s}" ${s===selected?'selected':''}>${s}</option>`).join('');
+}
+
+function openModal(speciesId){
+  const sp = SPECIES.find(s=>s.id===speciesId);
+  const overlay = document.getElementById('modal-overlay');
+  const modal = document.getElementById('modal-content');
+
+  modal.innerHTML = `
+    <button class="modal-close" id="modal-close">✕</button>
+    <div class="modal-card-wrap">${buildCardHTML(sp, {})}</div>
+    <button class="btn ghost" id="toggle-more" style="display:block;margin:0 auto 8px;">Click for more info ▾</button>
+    <p class="desc" id="more-info" style="display:none;">${sp.more}</p>
+    <hr>
+    <h3 class="section-h">Log a Sighting</h3>
+    <div class="log-form">
+      <div class="field">Date<input type="date" id="log-date" value="${todayISO()}" max="${todayISO()}"></div>
+      <div class="field">Who saw it<select id="log-spotter">${spotterOptions()}</select></div>
+      <div class="field">Note (optional)<input type="text" id="log-note" placeholder="e.g. near the rocks"></div>
+      <button class="btn" id="log-add">Log It!</button>
+    </div>
+    <h3 class="section-h">Sighting History</h3>
+    <ul class="sighting-list" id="sighting-list"></ul>
+  `;
+
+  overlay.classList.add('open');
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) closeModal(); });
+
+  document.getElementById('toggle-more').addEventListener('click', function(){
+    const info = document.getElementById('more-info');
+    const show = info.style.display==='none';
+    info.style.display = show ? 'block' : 'none';
+    this.textContent = show ? 'Hide extra info ▴' : 'Click for more info ▾';
+  });
+
+  document.getElementById('log-add').addEventListener('click', ()=>{
+    const date = document.getElementById('log-date').value || todayISO();
+    const spotter = document.getElementById('log-spotter').value;
+    const note = document.getElementById('log-note').value;
+    addSighting(sp.id, date, spotter, note);
+    toast(`Logged! ${spotter} spotted a ${sp.en} 🎉`);
+    renderSightingList(sp.id);
+    renderHomeStats();
+    renderAtlas();
+    refreshModalSeal(sp);
+  });
+
+  renderSightingList(sp.id);
+  mountCardImage(sp, modal);
+}
+
+function refreshModalSeal(sp){
+  const wrap = document.getElementById('modal-content');
+  if(!wrap) return;
+  const artEl = wrap.querySelector(`.tcard-art[data-thumb="${sp.id}"]`);
+  if(artEl && !artEl.querySelector('.caught-seal')){
+    const seal = document.createElement('div');
+    seal.className='caught-seal';
+    seal.textContent='✓';
+    artEl.appendChild(seal);
+  }
+}
+
+function renderSightingList(speciesId){
+  const listEl = document.getElementById('sighting-list');
+  if(!listEl) return;
+  const list = sightingsFor(speciesId);
+  if(list.length===0){
+    listEl.innerHTML = `<li style="justify-content:center;font-style:italic;color:var(--ink-soft);">No sightings logged yet — be the first!</li>`;
+    return;
+  }
+  listEl.innerHTML = "";
+  list.forEach(s=>{
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <span class="view-row"><span class="who">${s.spotter}</span> — ${s.date}${s.note ? ' · '+escapeHtml(s.note) : ''}</span>
+      <span class="actions">
+        <button title="Edit" data-edit="${s.id}">✎</button>
+        <button title="Delete" data-del="${s.id}">🗑</button>
+      </span>
+    `;
+    listEl.appendChild(li);
+
+    li.querySelector('[data-del]').addEventListener('click', ()=>{
+      deleteSighting(s.id);
+      toast('Sighting removed.');
+      renderSightingList(speciesId);
+      renderHomeStats();
+      renderAtlas();
+    });
+
+    li.querySelector('[data-edit]').addEventListener('click', ()=>{
+      li.innerHTML = `
+        <div class="edit-row">
+          <input type="date" value="${s.date}" max="${todayISO()}" id="edit-date-${s.id}">
+          <select id="edit-spotter-${s.id}">${spotterOptions(s.spotter)}</select>
+          <input type="text" value="${s.note||''}" placeholder="note" id="edit-note-${s.id}" style="width:100px;">
+          <button class="btn" style="padding:5px 10px;" id="save-${s.id}">Save</button>
+        </div>
+      `;
+      document.getElementById(`save-${s.id}`).addEventListener('click', ()=>{
+        const date = document.getElementById(`edit-date-${s.id}`).value;
+        const spotter = document.getElementById(`edit-spotter-${s.id}`).value;
+        const note = document.getElementById(`edit-note-${s.id}`).value;
+        updateSighting(s.id, date, spotter, note);
+        toast('Sighting updated.');
+        renderSightingList(speciesId);
+        renderHomeStats();
+        renderAtlas();
+      });
+    });
+  });
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function closeModal(){
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+/* ======================= EXPORT / IMPORT ======================= */
+document.getElementById('btn-export').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify({exportedAt:new Date().toISOString(), sightings}, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `javea-snorkel-log-${todayISO()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('Log exported!');
+});
+
+document.getElementById('btn-import').addEventListener('click', ()=>{
+  document.getElementById('file-import').click();
+});
+document.getElementById('file-import').addEventListener('change', function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt){
+    try{
+      const data = JSON.parse(evt.target.result);
+      const incoming = Array.isArray(data.sightings) ? data.sightings : (Array.isArray(data) ? data : null);
+      if(!incoming) throw new Error('bad format');
+      const replace = confirm(`Import ${incoming.length} sighting(s)?\n\nOK = merge with your current log\nCancel = do nothing`);
+      if(replace){
+        const existingIds = new Set(sightings.map(s=>s.id));
+        incoming.forEach(s=>{ if(!existingIds.has(s.id)) sightings.push(s); });
+        saveSightings(sightings);
+        renderHomeStats();
+        renderAtlas();
+        toast('Log imported and merged!');
+      }
+    }catch(err){
+      alert('Could not read that file — please choose a valid exported log.');
+    }
+    e.target.value = "";
+  };
+  reader.readAsText(file);
+});
+
+/* ======================= INIT ======================= */
+renderHomeStats();
+renderFeaturedFish();
+renderAtlas();
+initConditions();
+</script>
+</body>
+</html>
