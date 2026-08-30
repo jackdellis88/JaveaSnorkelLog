@@ -6,17 +6,17 @@
 <title>The Jávea Snorkel Log</title>
 
 <!-- Home Screen icon (iOS "Add to Home Screen") -->
-<link rel="apple-touch-icon" href="https://YOUR-USERNAME.github.io/YOUR-REPO/icon.png">
+<link rel="apple-touch-icon" href="icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Snorkel Log">
-<link rel="icon" href="https://YOUR-USERNAME.github.io/YOUR-REPO/icon.png">
+<link rel="icon" href="icon.png">
 
 <!-- Home Screen icon (Android / Chrome "Add to Home Screen") -->
-<link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjogIlRoZSBKw6F2ZWEgU25vcmtlbCBMb2ciLCAic2hvcnRfbmFtZSI6ICJTbm9ya2VsIExvZyIsICJzdGFydF91cmwiOiAiLiIsICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLCAiYmFja2dyb3VuZF9jb2xvciI6ICIjMEEyRTMzIiwgInRoZW1lX2NvbG9yIjogIiMwOThEOTAiLCAiaWNvbnMiOiBbeyJzcmMiOiAiaHR0cHM6Ly9ZT1VSLVVTRVJOQU1FLmdpdGh1Yi5pby9ZT1VSLVJFUE8vaWNvbi5wbmciLCAic2l6ZXMiOiAiMTkyeDE5MiIsICJ0eXBlIjogImltYWdlL3BuZyJ9LCB7InNyYyI6ICJodHRwczovL1lPVVItVVNFUk5BTUUuZ2l0aHViLmlvL1lPVVItUkVQTy9pY29uLnBuZyIsICJzaXplcyI6ICI1MTJ4NTEyIiwgInR5cGUiOiAiaW1hZ2UvcG5nIn1dfQ==">
+<link rel="manifest" href="manifest.json">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#098D90">
-<link rel="icon" type="image/png" sizes="192x192" href="https://YOUR-USERNAME.github.io/YOUR-REPO/icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
@@ -1870,32 +1870,11 @@ document.getElementById('file-import').addEventListener('change', function(e){
 
 /* ======================= SERVICE WORKER (offline shell caching) ======================= */
 if('serviceWorker' in navigator){
-  const swCode = `
-    const CACHE_NAME = 'javea-snorkel-v1';
-    self.addEventListener('install', e => { self.skipWaiting(); });
-    self.addEventListener('activate', e => { self.clients.claim(); });
-    self.addEventListener('fetch', e => {
-      const req = e.request;
-      if(req.method !== 'GET') return;
-      e.respondWith(
-        caches.open(CACHE_NAME).then(async cache => {
-          try{
-            const fresh = await fetch(req);
-            if(fresh && fresh.ok) cache.put(req, fresh.clone());
-            return fresh;
-          }catch(err){
-            const cached = await cache.match(req);
-            if(cached) return cached;
-            throw err;
-          }
-        })
-      );
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(()=>{
+      /* Not fatal — the app still works fully online without it. */
     });
-  `;
-  try{
-    const swUrl = URL.createObjectURL(new Blob([swCode], {type:'application/javascript'}));
-    navigator.serviceWorker.register(swUrl).catch(()=>{});
-  }catch(e){}
+  });
 }
 
 /* ======================= INIT ======================= */
